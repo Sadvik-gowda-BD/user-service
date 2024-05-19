@@ -18,6 +18,7 @@ public class UserRegisterDto {
     @Email(regexp = "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}", flags = Pattern.Flag.CASE_INSENSITIVE,
             message = "Invalid email address")
     private String emailId;
-    @NotEmpty(message = "Date of birth should not be empty")
     private String dateOfBirth;
+    @NotEmpty(message = "Password should not be empty")
+    private String password;
 }

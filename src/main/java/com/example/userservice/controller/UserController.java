@@ -7,6 +7,7 @@ import com.example.userservice.dto.UserDetailsResponseDto;
 import com.example.userservice.dto.UserRegisterDto;
 import com.example.userservice.service.UserEventsProducer;
 import com.example.userservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +30,7 @@ public class UserController {
     private final UserEventsProducer userEventsProducer;
 
     @PostMapping("/register")
-    public ResponseEntity<GenericResponseDto> register(@RequestBody UserRegisterDto userRegisterDto) {
+    public ResponseEntity<GenericResponseDto> register(@Valid @RequestBody UserRegisterDto userRegisterDto) {
         long userId = userService.registerUser(userRegisterDto);
         GenericResponseDto responseDto = GenericResponseDto.builder()
                 .result(true)
@@ -60,7 +61,7 @@ public class UserController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @DeleteMapping("/{userId}")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<GenericResponseDto> deleteUserDetails(@PathVariable("userId") long userId) {
         userService.deleteUserDetails(userId);
         GenericResponseDto responseDto = GenericResponseDto.builder()

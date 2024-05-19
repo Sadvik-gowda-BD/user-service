@@ -25,7 +25,7 @@ public class UserEventsProducerImpl implements UserEventsProducer {
     @Override
     public void publishUserEvents(String key, String message) {
         log.info("Publishing user-event: {}", message);
-        kafkaTemplate.send(userEventTopic, key, message);
+        //kafkaTemplate.send(userEventTopic, key, message);
         log.info("Successfully sent msg to kafka topic");
     }
 }

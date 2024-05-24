@@ -11,7 +11,8 @@ public interface UserService {
 
     long registerUser(UserRegisterDto userRegisterDto);
 
-    UserDetailsResponseDto getUserByid(long userId);
+    UserDetailsResponseDto getUserById(long userId);
+    UserDetailsResponseDto getCurrentUserDetails();
 
     UserDetailsResponseDto updateUserDetails(UserDetailsRequestDto userDetailsDto);
 

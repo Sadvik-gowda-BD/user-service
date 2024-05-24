@@ -30,8 +30,6 @@ public class UserEntity {
     private String middleName;
     @Column(name = "LAST_NAME", nullable = false)
     private String lastName;
-    @Column(name = "EMAIL_ID", nullable = false)
+    @Column(name = "EMAIL_ID", nullable = false, unique = true)
     private String emailId;
-    @Column(name = "DATE_OF_BIRTH")
-    private LocalDate dateOfBirth;
 }

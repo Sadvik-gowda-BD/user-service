@@ -5,10 +5,11 @@ import com.example.userservice.dto.UserDetailsDto;
 import com.example.userservice.dto.UserDetailsRequestDto;
 import com.example.userservice.dto.UserDetailsResponseDto;
 import com.example.userservice.dto.UserRegisterDto;
-import com.example.userservice.service.UserEventsProducer;
 import com.example.userservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,32 +27,41 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
-    private final UserEventsProducer userEventsProducer;
 
     @PostMapping("/register")
-    public ResponseEntity<GenericResponseDto> register(@RequestBody UserRegisterDto userRegisterDto) {
+    public ResponseEntity<GenericResponseDto> register(@Valid @RequestBody UserRegisterDto userRegisterDto) {
         long userId = userService.registerUser(userRegisterDto);
         GenericResponseDto responseDto = GenericResponseDto.builder()
                 .result(true)
                 .message(String.format("Registered successfully. User id is %s", userId))
                 .build();
-       // userEventsProducer.publishUserEvents("1","message");
-        return ResponseEntity.ok(responseDto);
+        return ResponseEntity.accepted().body(responseDto);
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserDetailsResponseDto> getUserDetails(@PathVariable("userId") long userId) {
-        UserDetailsResponseDto responseDto = userService.getUserByid(userId);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/details/{userId}")
+    public ResponseEntity<UserDetailsResponseDto> getUserDetailsById(@PathVariable("userId") long userId) {
+        UserDetailsResponseDto responseDto = userService.getUserById(userId);
         responseDto.setResult(true);
         return ResponseEntity.ok(responseDto);
     }
 
-    @GetMapping("/all")
+    @PreAuthorize("hasAuthority('USER') or hasAuthority('ADMIN')")
+    @GetMapping("/details")
+    public ResponseEntity<UserDetailsResponseDto> getCurrentUserDetails() {
+        UserDetailsResponseDto responseDto = userService.getCurrentUserDetails();
+        responseDto.setResult(true);
+        return ResponseEntity.ok(responseDto);
+    }
+
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @GetMapping("/details/all")
     public ResponseEntity<List<UserDetailsDto>> getAllUserDetails() {
         List<UserDetailsDto> responseDto = userService.getAllUsers();
         return ResponseEntity.ok(responseDto);
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/update")
     public ResponseEntity<UserDetailsResponseDto> updateUserDetails(@RequestBody UserDetailsRequestDto userDetailsDto) {
         UserDetailsResponseDto responseDto = userService.updateUserDetails(userDetailsDto);
@@ -60,7 +70,8 @@ public class UserController {
         return ResponseEntity.ok(responseDto);
     }
 
-    @DeleteMapping("/{userId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    @DeleteMapping("/delete/{userId}")
     public ResponseEntity<GenericResponseDto> deleteUserDetails(@PathVariable("userId") long userId) {
         userService.deleteUserDetails(userId);
         GenericResponseDto responseDto = GenericResponseDto.builder()

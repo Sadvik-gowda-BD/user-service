@@ -11,5 +11,4 @@ public class UserDetailsRequestDto {
     private String middleName;
     private String lastName;
     private String emailId;
-    private String dateOfBirth;
 }

@@ -12,7 +12,6 @@ public class UserDetailsMapper {
                 .middleName(userRegisterDto.getMiddleName())
                 .lastName(userRegisterDto.getLastName())
                 .emailId(userRegisterDto.getEmailId())
-                .dateOfBirth(DateTimeConverter.convertToDate(userRegisterDto.getDateOfBirth()))
                 .build();
     }
 

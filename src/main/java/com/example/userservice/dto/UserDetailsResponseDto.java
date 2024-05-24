@@ -19,5 +19,4 @@ public class UserDetailsResponseDto extends GenericResponseDto{
     private String middleName;
     private String lastName;
     private String emailId;
-    private String dateOfBirth;
 }

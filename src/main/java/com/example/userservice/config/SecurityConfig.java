@@ -24,11 +24,12 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(authReq -> {
-            authReq.requestMatchers("/delete/**").authenticated();
-            authReq.anyRequest().permitAll();
+            authReq.requestMatchers("/api/v1/register").permitAll();
+            authReq.anyRequest().authenticated();
         });
 
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+        httpSecurity.csrf(c -> c.disable());
         httpSecurity.httpBasic(Customizer.withDefaults());
         return httpSecurity.build();
     }

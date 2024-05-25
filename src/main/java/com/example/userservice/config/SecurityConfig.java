@@ -24,10 +24,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(authReq -> {
-            authReq.requestMatchers("/api/v1/register").permitAll();
-            authReq.anyRequest().authenticated();
+            //TODO: add authentication
+//            authReq.requestMatchers("/api/v1/register").permitAll();
+//            authReq.anyRequest().authenticated();
+            authReq.anyRequest().permitAll();
         });
 
+        //TODO: enhance
 //        httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.csrf(c -> c.disable());
         httpSecurity.httpBasic(Customizer.withDefaults());

@@ -7,7 +7,8 @@ import com.example.userservice.dto.UserDetailsResponseDto;
 import com.example.userservice.dto.UserRegisterDto;
 import com.example.userservice.service.UserService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,10 +24,18 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-@RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private  UserService userService;
+
+    @Value("${spring.kafka.producer.bootstrap-servers}")
+     String kafka;
+
+    @GetMapping("/test")
+    public String testApi(){
+        return kafka;
+    }
 
     @PostMapping("/register")
     public ResponseEntity<GenericResponseDto> register(@Valid @RequestBody UserRegisterDto userRegisterDto) {

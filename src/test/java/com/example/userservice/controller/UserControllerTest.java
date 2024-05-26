@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import java.util.Optional;
 
 import static com.example.userservice.constant.TestConstant.*;
+import static com.example.userservice.utils.Constant.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -48,8 +49,9 @@ public class UserControllerTest {
                 .firstName(FIRST_NAME)
                 .middleName(MIDDLE_NAME)
                 .lastName(LAST_NAME)
-                .role(ROLE_USER)
+                .role(TEST_USER_ROLE)
                 .password(PASSWORD)
+                .emailId(EMAIL_ID)
                 .build();
 
         when(userService.registerUser(registerRequestDto)).thenReturn(USER_ID);
@@ -66,38 +68,56 @@ public class UserControllerTest {
         assertFalse(violation.isPresent());
     }
 
-    //@Test
+    @Test
     void testRegisterFirstNameValidation() {
-        String firstNameErrorMessage = "First name should not be empty";
         UserRegisterDto registerRequestDto = UserRegisterDto.builder()
                 .firstName(null)
                 .middleName(MIDDLE_NAME)
                 .lastName(LAST_NAME)
-                .role(ROLE_USER)
+                .role(TEST_USER_ROLE)
                 .password(PASSWORD)
+                .emailId(EMAIL_ID)
                 .build();
 
         Optional<ConstraintViolation<UserRegisterDto>> violation = validator.validate(registerRequestDto).stream().findFirst();
         assertTrue(violation.isPresent());
         ConstraintViolation<UserRegisterDto> result = violation.get();
-        assertEquals(firstNameErrorMessage, result.getMessage());
+        assertEquals(INVALID_FIRST_NAME, result.getMessage());
     }
 
-    //@Test
+    @Test
     void testRegisterLastNameValidation() {
-        String firstNameErrorMessage = "Last name should not be empty";
         UserRegisterDto registerRequestDto = UserRegisterDto.builder()
                 .firstName(FIRST_NAME)
                 .middleName(MIDDLE_NAME)
                 .lastName(null)
-                .role(ROLE_USER)
+                .role(TEST_USER_ROLE)
+                .password(PASSWORD)
+                .emailId(EMAIL_ID)
+                .build();
+
+        Optional<ConstraintViolation<UserRegisterDto>> violation = validator.validate(registerRequestDto).stream().findFirst();
+        assertTrue(violation.isPresent());
+        ConstraintViolation<UserRegisterDto> result = violation.get();
+        assertEquals(INVALID_LAST_NAME, result.getMessage());
+    }
+
+
+    @Test
+    void testRegisterEmailIdValidation() {
+        UserRegisterDto registerRequestDto = UserRegisterDto.builder()
+                .firstName(FIRST_NAME)
+                .middleName(MIDDLE_NAME)
+                .lastName(LAST_NAME)
+                .role(TEST_USER_ROLE)
+                .emailId("abc")
                 .password(PASSWORD)
                 .build();
 
         Optional<ConstraintViolation<UserRegisterDto>> violation = validator.validate(registerRequestDto).stream().findFirst();
         assertTrue(violation.isPresent());
         ConstraintViolation<UserRegisterDto> result = violation.get();
-        assertEquals(firstNameErrorMessage, result.getMessage());
+        assertEquals(INVALID_EMAIL_ADDRESS, result.getMessage());
     }
 
     @Test
@@ -121,7 +141,6 @@ public class UserControllerTest {
 
     }
 
-    //TODO: Write junit test cases for other methods
-
+    //TODO: Write junit all positive and negative test cases for other methods
 
 }

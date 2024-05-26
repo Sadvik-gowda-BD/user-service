@@ -1,23 +1,30 @@
 package com.example.userservice.service.impl;
 
-import com.example.userservice.dto.UserDetailsDto;
 import com.example.userservice.dto.UserDetailsRequestDto;
 import com.example.userservice.dto.UserDetailsResponseDto;
 import com.example.userservice.dto.UserRegisterDto;
+import com.example.userservice.entity.RoleEntity;
+import com.example.userservice.entity.UserCredentialEntity;
 import com.example.userservice.entity.UserEntity;
-import com.example.userservice.exception.UserNotFound;
+import com.example.userservice.exception.InvaildRoleException;
+import com.example.userservice.exception.UserNotFoundException;
 import com.example.userservice.mapper.UserDetailsMapper;
+import com.example.userservice.repository.RoleRepository;
 import com.example.userservice.repository.UserCredentialRepo;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.service.AuthenticationService;
 import com.example.userservice.service.UserService;
 import com.example.userservice.mapper.UserCredentialMapper;
+import com.example.userservice.validator.RolesValidator;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.example.userservice.utils.Constant.INVALID_ROLE_EX_MESSAGE;
+import static com.example.userservice.utils.Constant.USER_NOT_FOUND_EX_MESSAGE;
 
 @Service
 @RequiredArgsConstructor
@@ -27,11 +34,13 @@ public class UserServiceImpl implements UserService {
     private final UserCredentialRepo userCredentialRepo;
     private final UserCredentialMapper userCredentialMapper;
     private final AuthenticationService authenticationService;
+    private final UserDetailsMapper userDetailsMapper;
+    private final RoleRepository roleRepository;
 
     @Override
     @Transactional
     public long registerUser(UserRegisterDto userRegisterDto) {
-        UserEntity userEntityRequest = UserDetailsMapper.map(userRegisterDto);
+        UserEntity userEntityRequest = UserDetailsMapper.mapToEntity(userRegisterDto);
         UserEntity responseEntity = userRepository.save(userEntityRequest);
         userCredentialRepo.save(userCredentialMapper.
                 map(responseEntity.getUserId(), userRegisterDto));
@@ -41,9 +50,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDetailsResponseDto getUserById(long userId) {
         UserEntity userEntity = getUserEntity(userId);
-        UserDetailsResponseDto userDetailsDto = new UserDetailsResponseDto();
-        BeanUtils.copyProperties(userEntity, userDetailsDto);
-        return userDetailsDto;
+        return userDetailsMapper.mapToUserDetailResponse(userEntity);
     }
 
     @Override
@@ -53,13 +60,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public UserDetailsResponseDto updateUserDetails(UserDetailsRequestDto userDetailsDto) {
         UserEntity requestEntity = getUserEntity(userDetailsDto.getUserId());
         BeanUtils.copyProperties(userDetailsDto, requestEntity);
+        this.updateUserRole(userDetailsDto.getUserId(), userDetailsDto.getRole());
         UserEntity responseEntity = userRepository.save(requestEntity);
-        UserDetailsResponseDto responseDto = new UserDetailsResponseDto();
-        BeanUtils.copyProperties(responseEntity, responseDto);
-        return responseDto;
+        return userDetailsMapper.mapToUserDetailResponse(responseEntity);
     }
 
     @Override
@@ -70,18 +77,26 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<UserDetailsDto> getAllUsers() {
+    public List<UserDetailsResponseDto> getAllUsers() {
         List<UserEntity> userEntities = userRepository.findAll();
         return userEntities.stream()
-                .map(userEntity -> {
-                    UserDetailsDto responseDto = new UserDetailsDto();
-                    BeanUtils.copyProperties(userEntity, responseDto);
-                    return responseDto;
-                }).toList();
+                .map(userDetailsMapper::mapToUserDetailResponse).toList();
     }
 
     private UserEntity getUserEntity(long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFound("User not found"));
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_EX_MESSAGE));
+    }
+
+    public void updateUserRole(long userId, String role) {
+        RolesValidator.validateRole(role);
+        UserCredentialEntity userCredential = userCredentialRepo.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_EX_MESSAGE));
+        if (!role.equals(userCredential.getRole())) {
+            RoleEntity roleEntity = roleRepository.findByRole(role)
+                    .orElseThrow(() -> new InvaildRoleException(INVALID_ROLE_EX_MESSAGE));
+            userCredential.setRole(roleEntity);
+            userCredentialRepo.save(userCredential);
+        }
     }
 }

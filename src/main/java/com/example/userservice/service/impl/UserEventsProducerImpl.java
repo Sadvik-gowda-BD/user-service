@@ -21,15 +21,9 @@ public class UserEventsProducerImpl implements UserEventsProducer {
     final AuthenticationService authenticationService;
 
     @Override
-    public void publishUserEvents(String key, String message) {
-        log.info("Publishing user-event: [KEY]:{} [VALUE]:{}", key, message);
-        //TODO: remove dummy event
-        EventDto d = EventDto.builder()
-                .accessedBy("101")
-                .accessedFor("201")
-                .message(message)
-                .build();
-        kafkaTemplate.send(userEventTopic, key, d);
+    public void publishUserEvents(String key, EventDto value) {
+        log.info("Publishing user-event: [KEY]:{} [VALUE]:{}", key, value);
+        kafkaTemplate.send(userEventTopic, key, value);
         log.info("Successfully sent msg to kafka topic");
     }
 }

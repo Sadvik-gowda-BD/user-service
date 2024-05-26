@@ -6,20 +6,23 @@ import jakarta.validation.constraints.Pattern;
 import lombok.Builder;
 import lombok.Data;
 
+import static com.example.userservice.utils.Constant.*;
+
 @Builder
 @Data
 public class UserRegisterDto {
 
-    @NotBlank(message = "First name should not be empty.")
+    @NotBlank(message = INVALID_FIRST_NAME)
     private String firstName;
     private String middleName;
-    @NotBlank(message = "Last name should not be empty.")
+    @NotBlank(message = INVALID_LAST_NAME)
     private String lastName;
-    @Email(regexp = "[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,3}", flags = Pattern.Flag.CASE_INSENSITIVE,
-            message = "Invalid email address.")
+    @Email(regexp = EMAIL_REGEX, flags = Pattern.Flag.CASE_INSENSITIVE,
+            message = INVALID_EMAIL_ADDRESS)
+    @NotBlank(message = INVALID_EMAIL_ADDRESS)
     private String emailId;
-    @NotBlank(message = "Password should not be empty.")
+    @NotBlank(message = INVALID_PASSWORD_NAME)
     private String password;
-    @NotBlank(message = "Roles should not be blank, it should be either USER or ADMIN.")
+    @NotBlank(message = INVALID_ROLE)
     private String role;
 }

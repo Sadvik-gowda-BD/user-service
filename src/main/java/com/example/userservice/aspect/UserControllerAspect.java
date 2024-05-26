@@ -3,7 +3,6 @@ package com.example.userservice.aspect;
 import com.example.userservice.dto.EventDto;
 import com.example.userservice.dto.UserDetailsRequestDto;
 import com.example.userservice.enums.ApiName;
-import com.example.userservice.mapper.EventMessageBuilder;
 import com.example.userservice.service.AuthenticationService;
 import com.example.userservice.service.UserEventsProducer;
 import com.example.userservice.utils.RequestIdentifier;

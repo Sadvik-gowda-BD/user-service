@@ -7,6 +7,7 @@ import com.example.userservice.entity.UserCredentialEntity;
 import com.example.userservice.entity.UserEntity;
 import com.example.userservice.exception.UserNotFoundException;
 import com.example.userservice.mapper.UserCredentialMapper;
+import com.example.userservice.mapper.UserDetailsMapper;
 import com.example.userservice.repository.UserCredentialRepo;
 import com.example.userservice.repository.UserRepository;
 import com.example.userservice.service.impl.UserServiceImpl;
@@ -26,7 +27,7 @@ import static com.example.userservice.constant.TestConstant.EMAIL_ID;
 import static com.example.userservice.constant.TestConstant.FIRST_NAME;
 import static com.example.userservice.constant.TestConstant.LAST_NAME;
 import static com.example.userservice.constant.TestConstant.PASSWORD;
-import static com.example.userservice.constant.TestConstant.ROLE_USER;
+import static com.example.userservice.constant.TestConstant.TEST_USER_ROLE;
 import static com.example.userservice.constant.TestConstant.USER_ID;
 import static com.example.userservice.utils.Constant.USER_NOT_FOUND_EX_MESSAGE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,6 +43,8 @@ public class UserServiceTest {
 
     static UserEntity userEntity;
     static RoleEntity userRoleEntity;
+    static UserCredentialEntity userCredentialEntity;
+    static UserDetailsResponseDto userDetailsResponseDto;
     @InjectMocks
     UserServiceImpl userService;
     @Mock
@@ -52,6 +55,8 @@ public class UserServiceTest {
     UserCredentialMapper userCredentialMapper;
     @Mock
     AuthenticationService authenticationService;
+    @Mock
+    UserDetailsMapper userDetailsMapper;
 
     @BeforeEach
     public void setUp() {
@@ -64,7 +69,20 @@ public class UserServiceTest {
 
         userRoleEntity = RoleEntity.builder()
                 .roleId(1)
-                .role(ROLE_USER)
+                .role(TEST_USER_ROLE)
+                .build();
+
+        userCredentialEntity = UserCredentialEntity.builder()
+                .userId(USER_ID)
+                .role(userRoleEntity)
+                .build();
+
+        userDetailsResponseDto = UserDetailsResponseDto.builder()
+                .userId(USER_ID)
+                .firstName(FIRST_NAME)
+                .lastName(LAST_NAME)
+                .role(TEST_USER_ROLE)
+                .emailId(EMAIL_ID)
                 .build();
     }
 
@@ -75,7 +93,7 @@ public class UserServiceTest {
                 .firstName(FIRST_NAME)
                 .lastName(LAST_NAME)
                 .password(PASSWORD)
-                .role(ROLE_USER)
+                .role(TEST_USER_ROLE)
                 .build();
 
         UserCredentialEntity userCredential = UserCredentialEntity.builder()
@@ -95,12 +113,14 @@ public class UserServiceTest {
         assertEquals(USER_ID, responseUserId);
     }
 
-   // @Test
+    @Test
     void testGetUserById() {
-
         when(userRepository.findById(USER_ID)).thenReturn(Optional.ofNullable(userEntity));
+        when(userDetailsMapper.mapToUserDetailResponse(userEntity)).thenReturn(userDetailsResponseDto);
 
         UserDetailsResponseDto responseDto = userService.getUserById(USER_ID);
+
+        verify(userRepository, times(1)).findById(USER_ID);
         assertNotNull(responseDto);
         assertEquals(userEntity.getUserId(), responseDto.getUserId());
         assertEquals(userEntity.getFirstName(), responseDto.getFirstName());
@@ -121,6 +141,7 @@ public class UserServiceTest {
         when(userRepository.findById(USER_ID)).thenReturn(Optional.ofNullable(userEntity));
 
         userService.deleteUserDetails(USER_ID);
+
         verify(userRepository).delete(userEntityCaptor.capture());
         verify(userCredentialRepo).deleteById(USER_ID);
 
@@ -128,12 +149,15 @@ public class UserServiceTest {
         assertEquals(USER_ID, deletedUserEntity.getUserId());
     }
 
-    //@Test
-    void testGetAllUsers(){
+    @Test
+    void testGetAllUsers() {
         when(userRepository.findAll()).thenReturn(Collections.singletonList(userEntity));
-        List<UserDetailsResponseDto> userDtos = userService.getAllUsers();
+        when(userDetailsMapper.mapToUserDetailResponse(userEntity)).thenReturn(userDetailsResponseDto);
+        List<UserDetailsResponseDto> responseDtos = userService.getAllUsers();
 
-        UserDetailsResponseDto userDto = userDtos.get(0);
+        assertEquals(1, responseDtos.size());
+
+        UserDetailsResponseDto userDto = responseDtos.get(0);
         assertNotNull(userDto);
         assertEquals(userEntity.getUserId(), userDto.getUserId());
         assertEquals(userEntity.getFirstName(), userDto.getFirstName());
@@ -141,11 +165,17 @@ public class UserServiceTest {
         assertEquals(userEntity.getEmailId(), userDto.getEmailId());
     }
 
-   // @Test
-    void testGetCurrentUserDetails(){
+    @Test
+    void testGetCurrentUserDetails() {
         when(authenticationService.getCurrentUser()).thenReturn(String.valueOf(USER_ID));
         when(userRepository.findById(USER_ID)).thenReturn(Optional.ofNullable(userEntity));
+        when(userDetailsMapper.mapToUserDetailResponse(userEntity)).thenReturn(userDetailsResponseDto);
+
         UserDetailsResponseDto userDto = userService.getCurrentUserDetails();
+
+        verify(userRepository, times(1)).findById(USER_ID);
+        verify(authenticationService, times(1)).getCurrentUser();
+
         assertNotNull(userDto);
         assertEquals(userEntity.getUserId(), userDto.getUserId());
         assertEquals(userEntity.getFirstName(), userDto.getFirstName());
@@ -153,9 +183,6 @@ public class UserServiceTest {
         assertEquals(userEntity.getEmailId(), userDto.getEmailId());
     }
 
-    void testUpdateUserDetails(){
-        when(userRepository.findById(USER_ID)).thenReturn(Optional.ofNullable(userEntity));
+    //TODO: Write junit all positive and negative test cases for other methods
 
-
-    }
 }

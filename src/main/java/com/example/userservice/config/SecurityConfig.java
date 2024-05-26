@@ -20,7 +20,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 @Configuration
 public class SecurityConfig {
-    
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeHttpRequests(authReq -> {
@@ -40,7 +40,6 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return new ProviderManager(provider);
     }
-
 
     @Bean
     public PasswordEncoder passwordEncoder() {

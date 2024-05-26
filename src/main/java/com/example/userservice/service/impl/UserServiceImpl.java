@@ -6,7 +6,7 @@ import com.example.userservice.dto.UserRegisterDto;
 import com.example.userservice.entity.RoleEntity;
 import com.example.userservice.entity.UserCredentialEntity;
 import com.example.userservice.entity.UserEntity;
-import com.example.userservice.exception.InvaildRoleException;
+import com.example.userservice.exception.InvalidRoleException;
 import com.example.userservice.exception.UserNotFoundException;
 import com.example.userservice.mapper.UserDetailsMapper;
 import com.example.userservice.repository.RoleRepository;
@@ -94,7 +94,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_EX_MESSAGE));
         if (!role.equals(userCredential.getRole())) {
             RoleEntity roleEntity = roleRepository.findByRole(role)
-                    .orElseThrow(() -> new InvaildRoleException(INVALID_ROLE_EX_MESSAGE));
+                    .orElseThrow(() -> new InvalidRoleException(INVALID_ROLE_EX_MESSAGE));
             userCredential.setRole(roleEntity);
             userCredentialRepo.save(userCredential);
         }

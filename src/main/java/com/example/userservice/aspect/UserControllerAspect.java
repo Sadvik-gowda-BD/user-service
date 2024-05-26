@@ -1,5 +1,6 @@
 package com.example.userservice.aspect;
 
+import com.example.userservice.dto.EventDto;
 import com.example.userservice.dto.UserDetailsRequestDto;
 import com.example.userservice.enums.ApiName;
 import com.example.userservice.mapper.EventMessageBuilder;
@@ -22,13 +23,15 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UserControllerAspect {
 
+    private static final String NEW_USER = "NEW USER";
+    private static final String ALL_USER = "ALL USER";
+    private static final String NULL_USER_ID = "NULL";
 
     final UserEventsProducer userEventsProducer;
     final AuthenticationService authenticationService;
 
     @Pointcut("execution(public * com.example.userservice.controller.UserController.*(..))")
     public void userControllerPointCut() {
-
     }
 
     @Before("userControllerPointCut()")
@@ -39,11 +42,11 @@ public class UserControllerAspect {
         String message;
 
         switch (api) {
-            case REGISTER -> message = "Requested for user registration";
-            case GET_CURRENT_USER_DETAILS -> message = "Accessing user details";
-            case GET_DETAILS_BY_ID -> message = "Accessing user data";
-            case GET_ALL_DETAILS -> message = "Accessing all user data";
-            case UPDATE_USER_DETAILS -> message = "Updating users data";
+            case REGISTER -> message = "Requested for new user registration";
+            case GET_CURRENT_USER_DETAILS -> message = "Requested access current user details";
+            case GET_DETAILS_BY_ID -> message = "Requested to access user data by id";
+            case GET_ALL_DETAILS -> message = "Requested to access all user data";
+            case UPDATE_USER_DETAILS -> message = "Requested to update user data";
             case DELETE_BY_ID -> message = "Requested to delete user data";
             default -> message = "Requested to perform Unknown operation";
         }
@@ -57,12 +60,10 @@ public class UserControllerAspect {
         ApiName api = RequestIdentifier.find(signature);
         String message;
 
-        Object[] args = joinPoint.getArgs();
-
         switch (api) {
-            case REGISTER -> message = "Registration completed";
-            case GET_CURRENT_USER_DETAILS -> message = "Accessed user details successfully";
-            case GET_DETAILS_BY_ID -> message = "Accessed user data successfully";
+            case REGISTER -> message = "Registration for new user completed successfully";
+            case GET_CURRENT_USER_DETAILS -> message = "Accessed current user details successfully";
+            case GET_DETAILS_BY_ID -> message = "Accessed user data by id successfully";
             case GET_ALL_DETAILS -> message = "Accessed all users data successfully";
             case UPDATE_USER_DETAILS -> message = "Updated user data successfully";
             case DELETE_BY_ID -> message = "Deleted user data successfully";
@@ -91,27 +92,44 @@ public class UserControllerAspect {
     }
 
     private void publishMessage(String message, ApiName api, JoinPoint joinPoint) {
-        String accessedFor = getUserId(api, joinPoint);
-        String accessedBy = authenticationService.getCurrentUser();
-        String finalMessage = EventMessageBuilder.buildEventMessage(message, accessedBy, accessedFor);
-        userEventsProducer.publishUserEvents(accessedBy, finalMessage);
+        String accessedFor = getAccessedForUserId(api, joinPoint);
+        String accessedBy = getAccessedByUserId(api);
+        EventDto eventDto = EventDto.builder()
+                .accessedFor(accessedFor)
+                .accessedBy(accessedBy)
+                .message(message)
+                .build();
+        userEventsProducer.publishUserEvents(accessedBy, eventDto);
     }
 
-    private String getUserId(ApiName api, JoinPoint joinPoint) {
+    private String getAccessedForUserId(ApiName api, JoinPoint joinPoint) {
         String user;
         Object[] args = joinPoint.getArgs();
         switch (api) {
-            case GET_DETAILS_BY_ID, DELETE_BY_ID -> user = (String) args[0];
+            case GET_DETAILS_BY_ID, DELETE_BY_ID -> {
+                Object object = args[0];
+                if (object instanceof Long) {
+                    user = Long.toString((Long) args[0]);
+                } else {
+                    user = NULL_USER_ID;
+                }
+            }
             case UPDATE_USER_DETAILS -> {
                 UserDetailsRequestDto dto = (UserDetailsRequestDto) args[0];
                 user = String.valueOf(dto.getUserId());
             }
             case GET_CURRENT_USER_DETAILS -> user = authenticationService.getCurrentUser();
-            case GET_ALL_DETAILS -> user = "ALL USER";
-            default -> user = "NULL";
+            case GET_ALL_DETAILS -> user = ALL_USER;
+            case REGISTER -> user = NEW_USER;
+            default -> user = NULL_USER_ID;
         }
         return user;
     }
 
-
+    private String getAccessedByUserId(ApiName api) {
+        if (api == ApiName.REGISTER) {
+            return NEW_USER;
+        }
+        return authenticationService.getCurrentUser();
+    }
 }

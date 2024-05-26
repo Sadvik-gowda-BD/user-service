@@ -28,8 +28,7 @@ public class SecurityConfig {
             authReq.anyRequest().authenticated();
         });
 
-//        httpSecurity.csrf(AbstractHttpConfigurer::disable);
-        httpSecurity.csrf(c -> c.disable());
+        httpSecurity.csrf(AbstractHttpConfigurer::disable);
         httpSecurity.httpBasic(Customizer.withDefaults());
         return httpSecurity.build();
     }

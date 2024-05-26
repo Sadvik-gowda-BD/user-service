@@ -1,9 +1,6 @@
 package com.example.userservice.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,7 +23,8 @@ public class UserCredentialEntity {
     private Long userId;
     @Column(name = "PASSWORD")
     private String password;
-    @Column(name = "ROLE")
-    private String role;
+    @ManyToOne
+    @JoinColumn(name = "ROLE_ID")
+    private RoleEntity role;
 
 }

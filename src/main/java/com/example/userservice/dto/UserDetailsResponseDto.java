@@ -12,11 +12,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserDetailsResponseDto extends GenericResponseDto{
+public class UserDetailsResponseDto{
 
     private long userId;
     private String firstName;
     private String middleName;
     private String lastName;
     private String emailId;
+    private String role;
 }

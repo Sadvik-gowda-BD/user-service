@@ -1,13 +1,12 @@
 package com.example.userservice.controller;
 
 import com.example.userservice.dto.GenericResponseDto;
-import com.example.userservice.dto.UserDetailsDto;
 import com.example.userservice.dto.UserDetailsRequestDto;
 import com.example.userservice.dto.UserDetailsResponseDto;
 import com.example.userservice.dto.UserRegisterDto;
 import com.example.userservice.service.UserService;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -23,10 +22,10 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1")
-@RequiredArgsConstructor
 public class UserController {
 
-    private final UserService userService;
+    @Autowired
+    private  UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<GenericResponseDto> register(@Valid @RequestBody UserRegisterDto userRegisterDto) {
@@ -42,7 +41,6 @@ public class UserController {
     @GetMapping("/details/{userId}")
     public ResponseEntity<UserDetailsResponseDto> getUserDetailsById(@PathVariable("userId") long userId) {
         UserDetailsResponseDto responseDto = userService.getUserById(userId);
-        responseDto.setResult(true);
         return ResponseEntity.ok(responseDto);
     }
 
@@ -50,14 +48,13 @@ public class UserController {
     @GetMapping("/details")
     public ResponseEntity<UserDetailsResponseDto> getCurrentUserDetails() {
         UserDetailsResponseDto responseDto = userService.getCurrentUserDetails();
-        responseDto.setResult(true);
         return ResponseEntity.ok(responseDto);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping("/details/all")
-    public ResponseEntity<List<UserDetailsDto>> getAllUserDetails() {
-        List<UserDetailsDto> responseDto = userService.getAllUsers();
+    public ResponseEntity<List<UserDetailsResponseDto>> getAllUserDetails() {
+        List<UserDetailsResponseDto> responseDto = userService.getAllUsers();
         return ResponseEntity.ok(responseDto);
     }
 
@@ -65,8 +62,6 @@ public class UserController {
     @PutMapping("/update")
     public ResponseEntity<UserDetailsResponseDto> updateUserDetails(@RequestBody UserDetailsRequestDto userDetailsDto) {
         UserDetailsResponseDto responseDto = userService.updateUserDetails(userDetailsDto);
-        responseDto.setResult(true);
-        responseDto.setMessage("User details updated successfully");
         return ResponseEntity.ok(responseDto);
     }
 
